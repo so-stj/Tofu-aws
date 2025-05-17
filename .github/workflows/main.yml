@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: configure aws credential
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
+          aws-region: us-east-1
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
-          aws-region: 'us-east-1'
       - name: OIDC test
         run: aws s3 ls
