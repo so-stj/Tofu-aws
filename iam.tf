@@ -29,6 +29,5 @@ resource "aws_iam_role" "terraform_cicd_oidc_role" {
 
 resource "aws_iam_role_policy_attachment" "AdministratorAccess_attachment" {
   role       = aws_iam_role.terraform_cicd_oidc_role.name
-  # Admin権限を指定
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
