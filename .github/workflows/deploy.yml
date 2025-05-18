@@ -20,11 +20,6 @@ strategy:
   matrix:
     directory:
       - tf-example
-      
-defaults:
-  run:
-    working-directory: ${{ matrix.directory }}
-    
 jobs:
   provision-ec2:
     runs-on: self-hosted
