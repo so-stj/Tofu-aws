@@ -16,6 +16,6 @@ resource "aws_instance" "app_server" {
   instance_type = "t2.micro"
   key_name      = "Tofu-EC2"
 tags = {
-    Name = "Tofu_EC2"
+    Name = "Tofu_EC22"
   }
 }
