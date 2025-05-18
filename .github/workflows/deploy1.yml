@@ -21,6 +21,11 @@ jobs:
         with:
           aws-region: us-east-1
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          
+      - name: run opentofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.9.0
         
       - name: Opentofu Init
         run: tofu init
