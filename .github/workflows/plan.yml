@@ -12,7 +12,7 @@ permissions:
   pull-requests: write
 
 env:
-  ROLE_TO_ASSUME: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+  AWS_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
   AWS_REGION: us-east-1
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         directory:
-          - "inra/ec2"  # ← Terraformコードのあるディレクトリを列挙
+          - "infra/ec2"  # ← Terraformコードのあるディレクトリを列挙
           
     defaults:
       run:
@@ -32,11 +32,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup AWS Credentials
+      - name: configure aws credential
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: us-east-1
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
 
       - name: Check if directory is not empty
         id: check
