@@ -34,7 +34,6 @@ jobs:
         env:
           TF_VAR_ec2_name:  "${{ github.event.inputs.ec2-name }}"
         run: |
-          cd tf-example/
           tofu init
           tofu validate
           tofu plan 
