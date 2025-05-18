@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - "infra/**"
+      - "infrastructure/**"
 defaults:
   run:
-    working-directory: infra
+    working-directory: infrastructure
 
 env:
   AWS_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
