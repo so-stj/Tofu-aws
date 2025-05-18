@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - infra/**
+      - "infra/**"
 
 env:
   AWS_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
