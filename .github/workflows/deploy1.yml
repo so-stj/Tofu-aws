@@ -3,7 +3,8 @@ name: test
 on:
   push:
     branches:
-      - main
+      - "main"
+
 env:
   AWS_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
 
@@ -14,23 +15,14 @@ permissions:
 jobs:
   test:
     runs-on: self-hosted
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
+      - name: configure aws credential
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: us-east-1
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
-
-      - name: Clean Terraform/Tofu workspace
-        run: |
-          rm -rf .terraform .tofu .terraform.lock.hcl .tofu.lock.hcl
-
+        
       - name: Opentofu Init
         run: tofu init
-
-      - name: Opentofu Apply
+      
+      - name: Terraform Apply
         run: tofu apply -auto-approve
