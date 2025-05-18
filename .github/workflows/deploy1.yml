@@ -3,7 +3,7 @@ name: test
 on:
   push:
     paths:
-      - 'infra'
+      - 'infra/**'
     branches:
       - main
 
