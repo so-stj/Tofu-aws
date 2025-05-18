@@ -1,8 +1,9 @@
 resource "aws_iam_openid_connect_provider" "terraform_cicd" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
-
-  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+  # このコードは固定値
+  # OIDC ID プロバイダーのサムプリント
+  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aeaf"]
 }
 
 resource "aws_iam_role" "terraform_cicd_oidc_role" {
@@ -19,6 +20,10 @@ resource "aws_iam_role" "terraform_cicd_oidc_role" {
       Condition = {
         StringLike = {
           "token.actions.githubusercontent.com:sub" = [
+            # リポジトリ制限
+            # 複数定義可能
+            # xxxxx：GitHubのアカウント名
+            # terraform_testの部分はGitHubActionsを使用したいリポジトリ名
             "repo:so-stj/Tofu-aws:*",
           ]
         }
@@ -29,5 +34,6 @@ resource "aws_iam_role" "terraform_cicd_oidc_role" {
 
 resource "aws_iam_role_policy_attachment" "AdministratorAccess_attachment" {
   role       = aws_iam_role.terraform_cicd_oidc_role.name
+  # Admin権限を指定
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
