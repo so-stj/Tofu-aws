@@ -21,18 +21,23 @@ jobs:
     defaults:
       run:
         working-directory: infra
-        
+
     steps:
-      - name: configure aws credential
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
-        
+
+      - name: Clean Terraform/Tofu workspace
+        run: |
+          rm -rf .terraform .tofu .terraform.lock.hcl .tofu.lock.hcl
+
       - name: Opentofu Init
         run: tofu init
-        working-directory: infra
-      
-      - name: Terraform Apply
+
+      - name: Opentofu Apply
         run: tofu apply -auto-approve
-        working-directory: infra
