@@ -1,15 +1,9 @@
----
+name: "Workflow for OpenTofu Plan"
 
-name: "Workflow for Terraform Plan"
 on:
-  workflow_call:
-    inputs:
-      TF_VERSION:
-        type: string
-        required: true
-  pull_request: ①
+  pull_request:
     branches:
-      - (Planを自動実行させたいブランチ名を指定)
+      - main  # ← Plan を実行したいブランチ名に変更
     types: [opened, synchronize]
 
 permissions:
@@ -18,38 +12,34 @@ permissions:
   pull-requests: write
 
 env:
-  ROLE_TO_ASSUME: arn:aws:iam::(略):role/(OpenID Connect でGithub Actions が利用するIAMロール名)
+  ROLE_TO_ASSUME: arn:aws:iam::<アカウントID>:role/<GitHub Actions用のIAMロール名>
   AWS_REGION: ap-northeast-1
 
 jobs:
-  terraform:
-    name: "Terraform Directory Checks"
+  opentofu:
+    name: "OpenTofu Directory Checks"
     runs-on: ubuntu-latest
     strategy:
       matrix:
         directory:
-          [
-            "(同じレポジトリ内にあるTerraformのコードがある場所を指定)"
-          ]
+          - "terraform/dev"  # ← Terraformコードのあるディレクトリを列挙
+          - "terraform/prod"
     defaults:
       run:
         working-directory: ${{ matrix.directory }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-# .terraform-version で定義しているTerraformバージョンを取得 ②
-      - name: Get Terraform version
-        id: terraform-version
-        uses: bigwheel/get-terraform-version-action@v1.2.0
-        with:
-          path: ${{ matrix.directory }}
+      - name: Read OpenTofu version
+        id: tofu-version
+        run: echo "tofu-version=$(cat .tofu-version)" >> $GITHUB_OUTPUT
 
-# .terraform-version で定義しているTerraformバージョンでinit ②
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
         with:
-          terraform_version: ${{ steps.terraform-version.outputs.terraform-version }}
+          tofu_version: ${{ steps.tofu-version.outputs.tofu-version }}
 
       - name: Setup AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -67,43 +57,40 @@ jobs:
             exit 1
           fi
 
-      - name: Terraform Init
+      - name: OpenTofu Init
         id: init
-        run: terraform init
+        run: tofu init
 
-      - name: Terraform Plan
+      - name: OpenTofu Plan
         id: plan
-        run: terraform plan -no-color
+        run: |
+          tofu plan -no-color | tee plan.txt
         continue-on-error: true
 
-      - name: truncate terraform plan result
+      - name: Truncate Plan Output
         run: |
-          plan=$(cat <<'EOF'
-          ${{ format('{0}{1}', steps.plan.outputs.stdout, steps.plan.outputs.stderr) }}
-          EOF
-          )
-          echo "PLAN<<EOF" >> $GITHUB_ENV
-          echo "${plan}" | grep -v 'Refreshing state' | tail -c 65000 >> $GITHUB_ENV
+          echo "PLAN_OUTPUT<<EOF" >> $GITHUB_ENV
+          grep -v 'Refreshing state' plan.txt | tail -c 65000 >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: create comment from plan result ③
+      - name: Create PR Comment with Plan Result
         uses: actions/github-script@0.9.0
         if: github.event_name == 'pull_request'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            const output = `#### OpenTofu Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### OpenTofu Plan 📖\`${{ steps.plan.outcome }}\`
 
             <details><summary>Show Plan</summary>
 
             \`\`\`\n
-            ${ process.env.PLAN }
+            ${process.env.PLAN_OUTPUT}
             \`\`\`
 
             </details>
 
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ matrix.directory }}\`, Workflow: \`${{ github.workflow }}\`*`;
+            *Pusher: @${{ github.actor }}, Directory: \`${{ matrix.directory }}\`, Workflow: \`${{ github.workflow }}\`*`;
 
             github.issues.createComment({
               issue_number: context.issue.number,
