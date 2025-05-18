@@ -1,11 +1,31 @@
+name: test
+
+on:
+  push:
+    branches:
+      - "main"
+
+env:
+  AWS_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+
+permissions:  
+  id-token: write
+  contents: read
+
 jobs:
-  build:
+  test:
     runs-on: self-hosted
     steps:
-      - name: Clean workspace
-        run: |
-          echo "Cleaning workspace..."
-          rm -rf * .[^.] .??*
+      - name: configure aws credential
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+        
+      - name: Opentofu Init
+        run: tofu init
+        working-directory: infra
       
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Terraform Apply
+        run: tofu apply -auto-approve
+        working-directory: infra
