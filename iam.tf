@@ -1,39 +1,40 @@
-resource "aws_iam_openid_connect_provider" "terraform_cicd" {
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
-  # このコードは固定値
-  # OIDC ID プロバイダーのサムプリント
-  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aeaf"]
+data "aws_iam_policy_document" "example_assume_role_policy" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    principals {
+      type        = "Federated"
+      identifiers = ["arn:aws:iam::533765226298:oidc-provider/token.actions.githubusercontent.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    # 特定のリポジトリの特定のブランチからのみ認証を許可する
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:so-stj/Tofu-aws:ref*"]
+    }
+    # 特定のリポジトリの全てのワークフローから認証を許可する場合はこっち
+    # condition {
+    #   test     = "StringLike"
+    #   variable = "token.actions.githubusercontent.com:sub"
+    #   values   = ["repo:<GitHubユーザー名>/<GitHubリポジトリ名>:*"]
+    # }
+  }
 }
 
-resource "aws_iam_role" "terraform_cicd_oidc_role" {
-  name = "TerraCICDDemoOIDCRole"
-  path = "/"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = "sts:AssumeRoleWithWebIdentity"
-      Principal = {
-        Federated = aws_iam_openid_connect_provider.terraform_cicd.arn
-      }
-      Condition = {
-        StringLike = {
-          "token.actions.githubusercontent.com:sub" = [
-            # リポジトリ制限
-            # 複数定義可能
-            # xxxxx：GitHubのアカウント名
-            # terraform_testの部分はGitHubActionsを使用したいリポジトリ名
-            "repo:so-stj/Tofu-aws:*",
-          ]
-        }
-      }
-    }]
-  })
+resource "aws_iam_role" "example" {
+  name               = "oidc-example-role"
+  assume_role_policy = data.aws_iam_policy_document.example_assume_role_policy.json
 }
 
-resource "aws_iam_role_policy_attachment" "AdministratorAccess_attachment" {
-  role       = aws_iam_role.terraform_cicd_oidc_role.name
-  # Admin権限を指定
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+# 任意のポリシーをアタッチする
+# AmazonS3ReadOnlyAccess をアタッチする例
+resource "aws_iam_role_policy_attachment" "example_s3_readonly" {
+  role       = aws_iam_role.example.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 }
