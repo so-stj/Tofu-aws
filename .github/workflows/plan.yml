@@ -18,12 +18,12 @@ env:
 jobs:
   opentofu:
     name: "OpenTofu Directory Checks"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       matrix:
         directory:
-          - "terraform/dev"  # ← Terraformコードのあるディレクトリを列挙
-          - "terraform/prod"
+          - "inra/ec2"  # ← Terraformコードのあるディレクトリを列挙
+          
     defaults:
       run:
         working-directory: ${{ matrix.directory }}
@@ -31,15 +31,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Read OpenTofu version
-        id: tofu-version
-        run: echo "tofu-version=$(cat .tofu-version)" >> $GITHUB_OUTPUT
-
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
-        with:
-          tofu_version: ${{ steps.tofu-version.outputs.tofu-version }}
 
       - name: Setup AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
