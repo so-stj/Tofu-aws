@@ -48,17 +48,20 @@ jobs:
         id: plan
         run: tofu plan -no-color
 
-      - name: Comment OpenTofu Plan Result
-        uses: actions/github-script@v6
+      - name : comment
+        uses: actions/github-script@v4
+        
         env:
-          PLAN: "OpenTofu\n${{ steps.plan.outputs.stdout }}"
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+          
         with:
           script: |
-            const output = `### OpenTofu CI/CD
-#### Format check: \`${{ steps.fmt.outcome }}\`
-#### Initialization: \`${{ steps.init.outcome }}\`
-#### Plan: \`${{ steps.plan.outcome }}\`
-#### Validation: \`${{ steps.validate.outcome }}\`
+
+            const output = `### terraform cicd
+            #### Terraform Format and Style \`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization \`${{ steps.init.outcome }}\`
+            #### Terraform Plan \`${{ steps.plan.outcome }}\`
+            #### Terraform Validation \`${{ steps.validate.outcome }}\`
 
             <details><summary>Show Plan</summary>
 
