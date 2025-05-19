@@ -68,22 +68,25 @@ jobs:
         with:
           script: |
             const output = `### OpenTofu CI/CD
-#### Format check: \`${{ steps.fmt.outcome }}\`
-#### Initialization: \`${{ steps.init.outcome }}\`
-#### Plan: \`${{ steps.plan.outcome }}\`
-#### Validation: \`${{ steps.validate.outcome }}\`
+            
+            #### Format check: \`${{ steps.fmt.outcome }}\`
+            #### Initialization: \`${{ steps.init.outcome }}\`
+            #### Plan: \`${{ steps.plan.outcome }}\`
+            #### Validation: \`${{ steps.validate.outcome }}\`    
+            
+            <details><summary>Show Plan</summary>   
 
-<details><summary>Show Plan</summary>
+            \`\`\`
+            ${process.env.PLAN}
+            \`\`\`    
+            
+            </details>`;
 
-\`\`\`\n
-${process.env.PLAN}
-\`\`\`
-
-</details>`;
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ matrix.directory }}\`, Workflow: \`${{ github.workflow }}\`*`;
 
             github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
+             issue_number: context.issue.number,
+             owner: context.repo.owner,
+             repo: context.repo.repo,
+             body: output
             });
