@@ -1,9 +1,10 @@
 name: test
 
 on:
+  workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: ["main"]
+
 
 env:
   AWS_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
@@ -15,6 +16,7 @@ permissions:
 jobs:
   test:
     runs-on: self-hosted
+    
     steps:
       - name: configure aws credential
         uses: aws-actions/configure-aws-credentials@v4
