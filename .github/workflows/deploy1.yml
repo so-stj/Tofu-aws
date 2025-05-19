@@ -25,6 +25,3 @@ jobs:
         
       - name: Opentofu Init
         run: tofu init
-      
-      - name: Terraform Apply
-        run: tofu apply -auto-approve
