@@ -1,9 +1,11 @@
-name: OpenTofuApply
+name: Workflow for Opentofu Apply
 
 on:
-  push:
+  pull_request:
     branches:
       - main
+    types: [closed]
+workflow_dispatch:
 
 env:
   AWS_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
@@ -19,6 +21,15 @@ permissions:
 jobs:
   OpenTofu_Apply:
     runs-on: self-hosted
+    strategy:
+      matrix:
+        directory:
+          [
+            staging
+          ]
+    defaults:
+      run:
+        working-directory: ${{ matrix.directory }}
 
     defaults:
       run:
@@ -26,7 +37,10 @@ jobs:
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
 
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -36,16 +50,16 @@ jobs:
 
       - name: Exec OpenTofu fmt check
         id: fmt
-
+        working-directory: ${{ matrix.directory }}
         run: tofu fmt -recursive -check
         continue-on-error: true
 
       - name: Exec OpenTofu init
         id: init
-
+        working-directory: ${{ matrix.directory }}
         run: tofu init
 
       - name: Exec OpenTofu apply
         id: apply
-
+        working-directory: ${{ matrix.directory }}
         run: tofu apply -auto-approve
