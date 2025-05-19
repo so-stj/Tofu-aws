@@ -26,9 +26,12 @@ jobs:
         
       - name: Opentofu Init
         run: tofu init
+        working-directory: ${{ github.workspace }}
 
       - name: Opentofu Plan
         run: tofu plan
+        working-directory: ${{ github.workspace }}
       
       - name: Opentofu Apply
         run: tofu apply -auto-approve
+        working-directory: ${{ github.workspace }}
