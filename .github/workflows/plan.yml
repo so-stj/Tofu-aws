@@ -23,16 +23,13 @@ jobs:
       matrix:
         directory:
           [
-            Tofu-aws/staging
+            "Tofu-aws/staging"
           ]
-          
-    defaults:
-      run:
-        working-directory: ${{ matrix.directory }}
 
     defaults:
       run:
         shell: bash
+        working-directory: ${{ matrix.directory }}
 
     steps:
       - name: Check out repository code
@@ -57,6 +54,7 @@ jobs:
 
       - name: Validate
         run: tofu validate
+        working-directory: ${{ matrix.directory }}
 
       - name: Exec OpenTofu plan
         id: plan
