@@ -1,7 +1,6 @@
 name: test
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - "main"
@@ -25,3 +24,9 @@ jobs:
         
       - name: Opentofu Init
         run: tofu init
+
+      - name: Opentofu Plan
+        run: tofu plan
+      
+      - name: Opentofu Apply
+        run: tofu apply -auto-approve
