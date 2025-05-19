@@ -6,10 +6,8 @@ terraform {
     }
   }
    backend "s3" {
-   bucket = "tf-state-bucket-devops-23" # 作成したS3バケット
+   bucket = "tf-state-bucket-devops-23"
    region = "us-east-1"
-   # バケット内の保存先
-   # 適宜変更してください
    key = "test/terraform.tfstate"
    encrypt = true
  }
