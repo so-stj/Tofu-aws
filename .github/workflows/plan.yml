@@ -1,0 +1,76 @@
+name: OpenTofuPlan
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  AWS_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+  pull-requests: write
+
+jobs:
+  OpenTofu_plan_and_Comment:
+    runs-on: self-hosted
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Exec OpenTofu fmt check
+        id: fmt
+        run: tofu fmt -check -recursive
+        continue-on-error: true
+
+      - name: Exec OpenTofu init
+        id: init
+        run: tofu init
+
+      - name: Validate
+        run: tofu validate
+
+      - name: Exec OpenTofu plan
+        id: plan
+        run: tofu plan -no-color
+
+      - name: Comment OpenTofu Plan Result
+        uses: actions/github-script@v6
+        env:
+          PLAN: "OpenTofu\n${{ steps.plan.outputs.stdout }}"
+        with:
+          script: |
+            const output = `### OpenTofu CI/CD
+#### Format check: \`${{ steps.fmt.outcome }}\`
+#### Initialization: \`${{ steps.init.outcome }}\`
+#### Plan: \`${{ steps.plan.outcome }}\`
+#### Validation: \`${{ steps.validate.outcome }}\`
+
+<details><summary>Show Plan</summary>
+
+\`\`\`\n
+${process.env.PLAN}
+\`\`\`
+
+</details>`;
+
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
