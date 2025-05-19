@@ -1,9 +1,10 @@
-name: OpenTofuPlan
+name: Workflow for Opentofu Plan
 
 on:
   pull_request:
+    types: [opened, synchronize]
     branches:
-      - main
+      - dev
 
 env:
   AWS_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
@@ -18,13 +19,24 @@ jobs:
   OpenTofu_plan_and_Comment:
     runs-on: self-hosted
 
+    strategy:
+      matrix:
+        directory:
+          [
+            staging
+          ]
+          
+    defaults:
+      run:
+        working-directory: ${{ matrix.directory }}
+
     defaults:
       run:
         shell: bash
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -34,11 +46,13 @@ jobs:
 
       - name: Exec OpenTofu fmt check
         id: fmt
+        working-directory: ${{ matrix.directory }}
         run: tofu fmt -check -recursive
         continue-on-error: true
 
       - name: Exec OpenTofu init
         id: init
+        working-directory: ${{ matrix.directory }}
         run: tofu init
 
       - name: Validate
@@ -46,6 +60,7 @@ jobs:
 
       - name: Exec OpenTofu plan
         id: plan
+        working-directory: ${{ matrix.directory }}
         run: tofu plan -no-color
 
       - name: Comment OpenTofu Plan Result
