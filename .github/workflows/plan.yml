@@ -23,7 +23,7 @@ jobs:
       matrix:
         directory:
           [
-            "staging"
+            "Tofu"
           ]
 
     defaults:
