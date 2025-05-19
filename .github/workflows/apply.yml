@@ -25,7 +25,7 @@ jobs:
       matrix:
         directory:
           [
-            "Tofu-aws/staging"
+            "staging"
           ]
 
     defaults:
