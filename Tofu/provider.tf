@@ -9,7 +9,6 @@ terraform {
    bucket = "tf-state-bucket-devops-23"
    region = "us-east-1"
    key = "test/terraform.tfstate"
-   dynamodb_table = "tf-locks"
    encrypt = true
  }
 }
