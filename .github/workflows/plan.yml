@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -59,34 +59,38 @@ jobs:
       - name: Exec OpenTofu plan
         id: plan
         working-directory: ${{ matrix.directory }}
-        run: tofu plan -no-color
+        run: |
+          set -o pipefail
+          output=$(tofu plan 2>&1)
+          echo "$output"
+          echo "::set-output name=stdout::$output"
 
       - name: Comment OpenTofu Plan Result
         uses: actions/github-script@v6
         env:
-          PLAN: "OpenTofu\n${{ steps.plan.outputs.stdout }}"
+          PLAN: "opentofu\n${{ steps.plan.outputs.stdout }}"
+
         with:
           script: |
-            const output = `### OpenTofu CI/CD
-            
-            #### Format check: \`${{ steps.fmt.outcome }}\`
-            #### Initialization: \`${{ steps.init.outcome }}\`
-            #### Plan: \`${{ steps.plan.outcome }}\`
-            #### Validation: \`${{ steps.validate.outcome }}\`    
-            
-            <details><summary>Show Plan</summary>   
+            const output = `### Opentofu cicd
+            #### Opentofu Format and Style \`${{ steps.fmt.outcome }}\`
+            #### Opentofu Initialization \`${{ steps.init.outcome }}\`
+            #### Opentofu Plan \`${{ steps.plan.outcome }}\`
+            #### Opentofu Validation \`${{ steps.validate.outcome }}\`
+
+            <details><summary>Show Plan</summary>
 
             \`\`\`
             ${process.env.PLAN}
-            \`\`\`    
-            
-            </details>`;
+            \`\`\`
+
+            </details>
 
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ matrix.directory }}\`, Workflow: \`${{ github.workflow }}\`*`;
 
             github.issues.createComment({
-             issue_number: context.issue.number,
-             owner: context.repo.owner,
-             repo: context.repo.repo,
-             body: output
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
             });
