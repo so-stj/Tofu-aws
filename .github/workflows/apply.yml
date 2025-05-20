@@ -9,8 +9,6 @@ on:
 
 env:
   AWS_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
-  # Terraform (OpenTofu) 実行ディレクトリを指定してください。例: env:
-  # WORK_DIR: ./terraform
 
 permissions:
   id-token: write
