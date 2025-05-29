@@ -44,7 +44,7 @@ jobs:
       - name: Exec OpenTofu fmt check
         id: fmt
         working-directory: ${{ matrix.directory }}
-        run: tofu fmt -check -recursive
+        run: tofu fmt -check -recursive -verbose
         continue-on-error: true
 
       - name: Exec OpenTofu init
