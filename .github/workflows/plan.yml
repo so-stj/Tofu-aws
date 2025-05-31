@@ -63,12 +63,12 @@ jobs:
           set -o pipefail
           output=$(tofu plan 2>&1)
           echo "$output"
-          echo "::set-output name=stdout::$output"
+          echo "stdout<<EOF" >> $GITHUB_OUTPUT
+          echo "$output" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Comment OpenTofu Plan Result
         uses: actions/github-script@v6
-        env:
-          PLAN: "opentofu\n${{ steps.plan.outputs.stdout }}"
-
         with:
           script: |
             const output = `### Opentofu cicd
@@ -78,7 +78,7 @@ jobs:
             #### Opentofu Validation \`${{ steps.validate.outcome }}\`
             <details><summary>Show Plan</summary>
             \`\`\`
-            ${process.env.PLAN}
+            ${{ steps.plan.outputs.stdout }}
             \`\`\`
             </details>
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ matrix.directory }}\`, Workflow: \`${{ github.workflow }}\`*`;
