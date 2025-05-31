@@ -66,7 +66,7 @@ jobs:
           echo "::set-output name=stdout::$output"
 
       - name: Comment OpenTofu Plan Result
-        uses: actions/github-script@v6
+        uses: actions/github-script@v4
         env:
           PLAN: "opentofu\n${{ steps.plan.outputs.stdout }}"
 
