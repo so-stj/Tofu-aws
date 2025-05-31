@@ -61,8 +61,7 @@ jobs:
         working-directory: ${{ matrix.directory }}
         run: |
           set -o pipefail
-          export TOFU_COLORS=never
-          output=$(tofu plan 2>&1)
+          output=$(tofu plan 2>&1 | perl -pe 's/\e\[?.*?[\@-~]//g')
           echo "$output"
           echo "stdout<<EOF" >> $GITHUB_OUTPUT
           echo "$output" >> $GITHUB_OUTPUT
