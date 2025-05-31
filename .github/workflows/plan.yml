@@ -1,4 +1,4 @@
-name: Workflow for OpenTofu Plan
+name: Workflow for Opentofu Plan
 
 on:
   pull_request:
@@ -16,12 +16,15 @@ permissions:
   pull-requests: write
 
 jobs:
-  opentofu_plan_and_comment:
+  OpenTofu_plan_and_Comment:
     runs-on: self-hosted
 
     strategy:
       matrix:
-        directory: ["Tofu"]
+        directory:
+          [
+            "Tofu"
+          ]
 
     defaults:
       run:
@@ -38,54 +41,50 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: us-east-1
 
-      - name: OpenTofu fmt check
+      - name: Exec OpenTofu fmt check
         id: fmt
+        working-directory: ${{ matrix.directory }}
         run: tofu fmt -check -recursive
         continue-on-error: true
 
-      - name: OpenTofu init
+      - name: Exec OpenTofu init
         id: init
+        working-directory: ${{ matrix.directory }}
         run: tofu init
 
-      - name: OpenTofu validate
-        id: validate
+      - name: Validate
         run: tofu validate
+        working-directory: ${{ matrix.directory }}
 
-      - name: OpenTofu plan
+      - name: Exec OpenTofu plan
         id: plan
+        working-directory: ${{ matrix.directory }}
         run: |
           set -o pipefail
           output=$(tofu plan 2>&1)
           echo "$output"
-          # safely expose multi-line output
-          echo "stdout<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$output"        >> "$GITHUB_OUTPUT"
-          echo "EOF"            >> "$GITHUB_OUTPUT"
-
+          echo "::set-output name=stdout::$output"
       - name: Comment OpenTofu Plan Result
         uses: actions/github-script@v6
+        env:
+          PLAN: "opentofu\n${{ steps.plan.outputs.stdout }}"
+
         with:
           script: |
-            const output = `### 🛠️ OpenTofu CI/CD Plan Result
-
-#### 🧹 Format and Style: \`${{ steps.fmt.outcome }}\`
-#### 📦 Initialization: \`${{ steps.init.outcome }}\`
-#### 🔍 Validation: \`${{ steps.validate.outcome }}\`
-#### 📋 Plan: \`${{ steps.plan.outcome }}\`
-
-<details>
-<summary>Show Plan Output</summary>
-
-\`\`\`
-${{ steps.plan.outputs.stdout }}
-\`\`\`
-</details>
-
-*Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Directory: \`${{ matrix.directory }}\`, Workflow: \`${{ github.workflow }}\`*`;
-
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
+            const output = `### Opentofu cicd
+            #### Opentofu Format and Style \`${{ steps.fmt.outcome }}\`
+            #### Opentofu Initialization \`${{ steps.init.outcome }}\`
+            #### Opentofu Plan \`${{ steps.plan.outcome }}\`
+            #### Opentofu Validation \`${{ steps.validate.outcome }}\`
+            <details><summary>Show Plan</summary>
+            \`\`\`
+            ${process.env.PLAN}
+            \`\`\`
+            </details>
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ matrix.directory }}\`, Workflow: \`${{ github.workflow }}\`*`;
+            github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
             });
