@@ -76,10 +76,13 @@ jobs:
             #### Opentofu Initialization \`${{ steps.init.outcome }}\`
             #### Opentofu Plan \`${{ steps.plan.outcome }}\`
             #### Opentofu Validation \`${{ steps.validate.outcome }}\`
-            <details><summary>Show Plan</summary>
-            \`\`\`
+            <details>
+            <summary>Show Plan (click to expand, copy from code tab)</summary>
+
+            \`\`\`plaintext
             ${{ steps.plan.outputs.stdout }}
             \`\`\`
+
             </details>
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ matrix.directory }}\`, Workflow: \`${{ github.workflow }}\`*`;
             github.rest.issues.createComment({
