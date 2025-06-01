@@ -1,10 +1,6 @@
-name: Workflow for Opentofu Apply
+name: Workflow for OpenTofu Destroy
 
 on:
-  pull_request:
-    branches:
-      - main
-    types: [merged]
   workflow_dispatch:
 
 env:
@@ -14,10 +10,9 @@ permissions:
   id-token: write
   contents: read
   actions: read
-  pull-requests: write
 
 jobs:
-  OpenTofu_Apply:
+  OpenTofu_Destroy:
     runs-on: self-hosted
     strategy:
       matrix:
@@ -35,7 +30,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 1
 
       - name: Configure AWS credentials using OIDC
@@ -44,18 +38,10 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: us-east-1
 
-      - name: Exec OpenTofu fmt check
-        id: fmt
-        working-directory: ${{ matrix.directory }}
-        run: tofu fmt -recursive -check
-        continue-on-error: true
-
       - name: Exec OpenTofu init
         id: init
-        working-directory: ${{ matrix.directory }}
         run: tofu init
 
-      - name: Exec OpenTofu apply
-        id: apply
-        working-directory: ${{ matrix.directory }}
-        run: tofu apply -auto-approve
+      - name: Exec OpenTofu destroy
+        id: destroy
+        run: tofu destroy -auto-approve
