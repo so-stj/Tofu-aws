@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-    types: [merged]
+    types: [closed]
   workflow_dispatch:
 
 env:
