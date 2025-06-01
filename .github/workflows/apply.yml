@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   OpenTofu_Apply:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         directory:
@@ -37,6 +37,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 1
+
+      - name: set up OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          version: latest
 
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
