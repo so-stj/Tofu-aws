@@ -1,0 +1,47 @@
+name: Workflow for OpenTofu Destroy
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  OpenTofu_Destroy:
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        directory:
+          [
+            "Tofu"
+          ]
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ matrix.directory }}
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Exec OpenTofu init
+        id: init
+        run: tofu init
+
+      - name: Exec OpenTofu destroy
+        id: destroy
+        run: tofu destroy -auto-approve
